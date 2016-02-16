@@ -1,0 +1,130 @@
+<html>
+	<head>
+		<title>VueJS Tag Input</title>
+		<script type="text/javascript" src="js/vue.js"></script>
+		<script type="text/javascript" src="js/vue-resource.js"></script>
+	</head>
+
+	<body>
+		<style>
+			div.tags-input{
+				border-radius: 3px;
+				display: block;
+				width: 100%;
+				padding: 0.5 rem;
+				border: 1px solid #cacaca;
+				margin: 0 0 1rem;
+				font-family: inherit;
+				color: #0a0a0a;
+				position: relative;
+			}
+
+			div.tags-input:after{
+				content: "";
+				display: table;
+				clear: both;
+			}
+
+			div.tags-input div.selected-tag{
+				border: 1px solid #728290;
+				background: #DDE6EE;
+				font-size: 18px;
+				color: #728290;
+				padding: 3px;
+				margin: 3px;
+				font-family: 'Source Sans Pro', sans-serif;
+				float: left;
+				border-radius: 3px;
+			}
+
+			div.tags-input div.selected-tag span.remove-tag{
+				margin: 0 0 0 5px;
+				padding: 0;
+				border: none;
+				background: none;
+				cursor: pointer;
+				vertical-align: middle;
+				font: bold 16px Arial,sans-serif;
+				color: #585858;
+			}
+
+			div.tags-input input[type="text"].new-tag-input{
+				border: 0px;
+				margin: 3px;
+				float: left;
+				font-size: 18px;
+				width: 100px;
+			}
+
+			div.tags-input input[type="text"].new-tag-input:focus{
+				box-shadow: none;
+			}
+
+			div.tags-input input[type="text"].new-tag-input.duplicate-warning{
+				color: red;
+			}
+
+			div.tags-input div.tag-autocomplete{
+				position: absolute;
+				background-color: white;
+				width: 100%;
+				border-radius: 3px;
+				padding: 5px 0;
+				z-index: 99999;
+				border: 1px solid rgba(0,0,0,0.2);
+		    	-webkit-box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+		    	-moz-box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+		    	box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+			}
+
+			div.tags-input div.tag-autocomplete div.tag-search-result{
+				padding: 5px 10px;
+				cursor: pointer;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				color: #666666;
+				font-family: 'Source Sans Pro',sans-serif;
+				font-size: 14px;
+				background-color: white;
+			}
+
+			div.tags-input div.tag-autocomplete div.tag-search-result:hover{
+				background-color: #F7FBFF;
+			}
+
+			div.tags-input div.tag-autocomplete div.tag-search-result.selected-search-index{
+				background-color: #F7FBFF;
+			}
+		</style>
+		<div id="app">
+			<tags-input :tags-array="tagsArray" :local-source="searchSource" local-source-field="name"></tags-input>
+		</div>
+	</body>
+
+	<template id="tags-input-template">
+		<div class="tags-input" v-on:click="focusTagInput">
+			<div class="selected-tag" v-for="(key, selectedTag) in tagsArray">{{ selectedTag.name }} <span class="remove-tag" v-on:click="removeTag( key )">&times;</span> </div>
+			<input type="text" :id="computedID" class="new-tag-input" v-model="currentTag" v-on:keydown="searchTags" v-on:keyup.enter="addNewTag" v-on:keydown.up="changeIndex( 'up' )" v-on:keydown.delete="handleDelete" v-on:keydown.down="changeIndex( 'down' )" v-bind:class="{ 'duplicate-warning' : duplicateFlag }" placeholder="Add a tag"/>
+			
+			<div class="tag-autocomplete" id="autocomplete-{{ computedID }}" v-show="showAutocomplete">
+				<div class="tag-search-result" v-for="(key, tag) in tagSearchResults" v-bind:class="{ 'selected-search-index' : this.searchSelectedIndex == key }" v-on:click="selectTag( tag )">{{ tag.name }}</div>
+			</div>
+		</div>
+	</template>
+	
+	<script type="text/javascript" src="js/vue-tags-input.js"></script>
+	
+	<script type="text/javascript">
+		new Vue({
+			el: '#app',
+			data: {
+				tagsArray: [],
+				tagsArrayX: [],
+				searchSource: [{"id":"1","name":"doomgaze","created_at":"2014-10-03 22:42:59","updated_at":"2014-10-03 22:42:59"},{"id":"2","name":"vibes","created_at":"-0001-11-30 00:00:00","updated_at":"-0001-11-30 00:00:00"},{"id":"3","name":"work-tunes","created_at":"-0001-11-30 00:00:00","updated_at":"-0001-11-30 00:00:00"},{"id":"4","name":"perfect","created_at":"2014-10-23 07:48:24","updated_at":"2014-10-23 07:48:24"},{"id":"5","name":"california-tunes","created_at":"2014-10-23 07:48:24","updated_at":"2014-10-23 07:48:24"},{"id":"7","name":"exploring","created_at":"2014-10-29 05:37:20","updated_at":"2014-10-29 05:37:20"},{"id":"8","name":"smooth","created_at":"2014-11-04 04:17:00","updated_at":"2014-11-04 04:17:00"},{"id":"9","name":"indie","created_at":"2014-11-04 04:17:00","updated_at":"2014-11-04 04:17:00"},{"id":"10","name":"acoustic","created_at":"2014-11-04 04:17:00","updated_at":"2014-11-04 04:17:00"},{"id":"11","name":"chill","created_at":"2015-01-14 04:39:11","updated_at":"2015-01-14 04:39:11"},{"id":"12","name":"california","created_at":"2015-01-17 05:25:34","updated_at":"2015-01-17 05:25:34"},{"id":"13","name":"uplifting","created_at":"2015-01-17 05:25:34","updated_at":"2015-01-17 05:25:34"},{"id":"14","name":"sad","created_at":"2015-01-17 05:27:57","updated_at":"2015-01-17 05:27:57"},{"id":"15","name":"relating-to-life","created_at":"2015-01-17 05:27:57","updated_at":"2015-01-17 05:27:57"},{"id":"16","name":"dancing","created_at":"2015-01-17 05:29:14","updated_at":"2015-01-17 05:29:14"},{"id":"17","name":"himym","created_at":"2015-01-17 05:29:14","updated_at":"2015-01-17 05:29:14"},{"id":"18","name":"thinking-tunes","created_at":"2015-01-18 22:09:58","updated_at":"2015-01-18 22:09:58"},{"id":"19","name":"post-MSOE","created_at":"2015-01-18 22:21:32","updated_at":"2015-01-18 22:21:32"},{"id":"20","name":"adventure","created_at":"2015-01-18 22:24:26","updated_at":"2015-01-18 22:24:26"},{"id":"21","name":"motivating","created_at":"2015-01-18 22:28:20","updated_at":"2015-01-18 22:28:20"},{"id":"22","name":"los-angeles","created_at":"2015-01-18 22:28:20","updated_at":"2015-01-18 22:28:20"},{"id":"23","name":"good-hip-hop","created_at":"2015-01-18 22:31:31","updated_at":"2015-01-18 22:31:31"},{"id":"24","name":"workout","created_at":"2015-01-18 22:31:31","updated_at":"2015-01-18 22:31:31"},{"id":"25","name":"california-cruising","created_at":"2015-01-20 22:58:10","updated_at":"2015-01-20 22:58:10"},{"id":"26","name":"good-banjo","created_at":"2015-01-21 00:11:25","updated_at":"2015-01-21 00:11:25"},{"id":"27","name":"folk","created_at":"2015-01-21 01:21:19","updated_at":"2015-01-21 01:21:19"},{"id":"28","name":"summer","created_at":"2015-01-21 01:25:35","updated_at":"2015-01-21 01:25:35"},{"id":"29","name":"cruising-songs","created_at":"2015-01-21 01:25:35","updated_at":"2015-01-21 01:25:35"},{"id":"30","name":"upbeat","created_at":"2015-01-21 01:29:04","updated_at":"2015-01-21 01:29:04"},{"id":"31","name":"life-song","created_at":"2015-01-21 01:29:04","updated_at":"2015-01-21 01:29:04"},{"id":"32","name":"country-rock","created_at":"2015-01-21 01:31:43","updated_at":"2015-01-21 01:31:43"},{"id":"33","name":"life-adventure","created_at":"2015-01-21 01:31:43","updated_at":"2015-01-21 01:31:43"},{"id":"34","name":"sunny-winter-day","created_at":"2015-01-21 02:41:53","updated_at":"2015-01-21 02:41:53"},{"id":"35","name":"new-start","created_at":"2015-01-21 03:44:18","updated_at":"2015-01-21 03:44:18"},{"id":"36","name":"beatiful","created_at":"2015-01-22 05:46:37","updated_at":"2015-01-22 05:46:37"},{"id":"37","name":"sunny-day","created_at":"2015-01-22 05:46:37","updated_at":"2015-01-22 05:46:37"},{"id":"38","name":"pop","created_at":"2015-01-22 21:55:11","updated_at":"2015-01-22 21:55:11"},{"id":"39","name":"sunny","created_at":"2015-01-22 21:55:11","updated_at":"2015-01-22 21:55:11"},{"id":"40","name":"high-school","created_at":"2015-01-22 21:57:37","updated_at":"2015-01-22 21:57:37"},{"id":"41","name":"violin-rock","created_at":"2015-01-22 21:59:48","updated_at":"2015-01-22 21:59:48"},{"id":"42","name":"running","created_at":"2015-01-22 22:02:55","updated_at":"2015-01-22 22:02:55"},{"id":"43","name":"oak-creek","created_at":"2015-01-22 22:02:55","updated_at":"2015-01-22 22:02:55"},{"id":"44","name":"beginning-of-summer","created_at":"2015-01-22 22:02:55","updated_at":"2015-01-22 22:02:55"},{"id":"45","name":"piano-rock","created_at":"2015-01-22 22:06:46","updated_at":"2015-01-22 22:06:46"},{"id":"46","name":"smooth-running","created_at":"2015-01-22 22:06:46","updated_at":"2015-01-22 22:06:46"},{"id":"47","name":"classic-rock","created_at":"2015-01-22 23:08:16","updated_at":"2015-01-22 23:08:16"},{"id":"48","name":"old-gfs","created_at":"2015-01-22 23:09:37","updated_at":"2015-01-22 23:09:37"},{"id":"49","name":"happy","created_at":"2015-01-22 23:09:37","updated_at":"2015-01-22 23:09:37"},{"id":"50","name":"chillwave-radio","created_at":"2015-01-28 05:30:31","updated_at":"2015-01-28 05:30:31"},{"id":"51","name":"lord-huron-radio","created_at":"2015-01-28 06:56:22","updated_at":"2015-01-28 06:56:22"},{"id":"52","name":"boating","created_at":"2015-01-29 02:44:26","updated_at":"2015-01-29 02:44:26"},{"id":"53","name":"island","created_at":"2015-01-29 02:44:26","updated_at":"2015-01-29 02:44:26"},{"id":"54","name":"boat","created_at":"2015-01-29 02:48:31","updated_at":"2015-01-29 02:48:31"},{"id":"56","name":"folk-rock-radio","created_at":"2015-02-04 00:40:23","updated_at":"2015-02-04 00:40:23"},{"id":"57","name":"life-living","created_at":"2015-04-30 08:32:32","updated_at":"2015-04-30 08:32:32"},{"id":"58","name":"gospel","created_at":"2015-04-30 08:34:15","updated_at":"2015-04-30 08:34:15"},{"id":"59","name":"dub-step","created_at":"2015-04-30 08:39:52","updated_at":"2015-04-30 08:39:52"},{"id":"60","name":"chicago","created_at":"2015-04-30 08:39:52","updated_at":"2015-04-30 08:39:52"},{"id":"61","name":"dj-tunes","created_at":"2015-04-30 08:43:19","updated_at":"2015-04-30 08:43:19"},{"id":"62","name":"thought-provoking","created_at":"2015-05-02 02:43:43","updated_at":"2015-05-02 02:43:43"},{"id":"63","name":"warm-weather","created_at":"2015-05-06 06:22:53","updated_at":"2015-05-06 06:22:53"},{"id":"64","name":"western","created_at":"2015-05-06 08:08:02","updated_at":"2015-05-06 08:08:02"},{"id":"65","name":"poetic","created_at":"2015-05-19 06:47:51","updated_at":"2015-05-19 06:47:51"},{"id":"67","name":"camping","created_at":"2015-05-19 07:07:52","updated_at":"2015-05-19 07:07:52"},{"id":"68","name":"rainy-la","created_at":"2015-05-19 07:12:28","updated_at":"2015-05-19 07:12:28"},{"id":"70","name":"thinking","created_at":"2015-05-19 07:42:45","updated_at":"2015-05-19 07:42:45"},{"id":"71","name":"whitewater","created_at":"2015-05-19 07:46:09","updated_at":"2015-05-19 07:46:09"},{"id":"72","name":"summerfest","created_at":"2015-05-19 07:50:12","updated_at":"2015-05-19 07:50:12"},{"id":"73","name":"summer","created_at":"2015-05-19 07:52:33","updated_at":"2015-05-19 07:52:33"},{"id":"74","name":"summer-time","created_at":"2015-05-28 01:57:23","updated_at":"2015-05-28 01:57:23"},{"id":"76","name":"story","created_at":"2015-06-29 02:39:55","updated_at":"2015-06-29 02:39:55"},{"id":"77","name":"hipster","created_at":"2015-07-06 02:50:14","updated_at":"2015-07-06 02:50:14"},{"id":"78","name":"future","created_at":"2015-07-06 02:50:14","updated_at":"2015-07-06 02:50:14"},{"id":"79","name":"road-trip","created_at":"2015-08-07 23:28:35","updated_at":"2015-08-07 23:28:35"},{"id":"80","name":"uww","created_at":"2015-08-07 23:40:50","updated_at":"2015-08-07 23:40:50"},{"id":"81","name":"nineties","created_at":"2015-08-13 07:01:03","updated_at":"2015-08-13 07:01:03"},{"id":"82","name":"grunge","created_at":"2015-08-13 07:01:03","updated_at":"2015-08-13 07:01:03"},{"id":"83","name":"dreamy","created_at":"2015-08-13 07:06:08","updated_at":"2015-08-13 07:06:08"},{"id":"84","name":"sunny-coast","created_at":"2015-08-13 07:06:08","updated_at":"2015-08-13 07:06:08"},{"id":"85","name":"rock","created_at":"2015-08-20 03:20:29","updated_at":"2015-08-20 03:20:29"},{"id":"86","name":"fall-day","created_at":"2015-08-20 03:25:32","updated_at":"2015-08-20 03:25:32"},{"id":"87","name":"reminisce","created_at":"2015-08-20 03:25:32","updated_at":"2015-08-20 03:25:32"},{"id":"88","name":"ambient-work","created_at":"2015-08-20 03:29:51","updated_at":"2015-08-20 03:29:51"},{"id":"93","name":"good-rap","created_at":"2015-08-20 03:55:36","updated_at":"2015-08-20 03:55:36"},{"id":"94","name":"college","created_at":"2015-08-20 03:55:36","updated_at":"2015-08-20 03:55:36"},{"id":"95","name":"new-york-city","created_at":"2015-08-20 03:57:53","updated_at":"2015-08-20 03:57:53"},{"id":"96","name":"quiet","created_at":"2015-08-20 04:06:13","updated_at":"2015-08-20 04:06:13"},{"id":"97","name":"camero-tunes","created_at":"2015-08-20 05:10:07","updated_at":"2015-08-20 05:10:07"},{"id":"98","name":"cruise","created_at":"2015-09-01 06:56:23","updated_at":"2015-09-01 06:56:23"},{"id":"99","name":"wisconsin-rapids","created_at":"2015-09-23 04:37:18","updated_at":"2015-09-23 04:37:18"},{"id":"100","name":"beer-drinking","created_at":"2015-09-25 04:12:37","updated_at":"2015-09-25 04:12:37"},{"id":"101","name":"hawaii","created_at":"2015-09-25 04:12:37","updated_at":"2015-09-25 04:12:37"},{"id":"102","name":"rap","created_at":"2015-09-25 04:50:42","updated_at":"2015-09-25 04:50:42"},{"id":"103","name":"compton","created_at":"2015-09-25 04:50:42","updated_at":"2015-09-25 04:50:42"},{"id":"104","name":"funk","created_at":"2015-09-25 04:50:42","updated_at":"2015-09-25 04:50:42"},{"id":"105","name":"warm-summer-night","created_at":"2015-09-26 00:22:07","updated_at":"2015-09-26 00:22:07"},{"id":"106","name":"energetic","created_at":"2015-09-26 00:23:40","updated_at":"2015-09-26 00:23:40"},{"id":"107","name":"sunset-in-california","created_at":"2015-09-26 02:38:21","updated_at":"2015-09-26 02:38:21"},{"id":"108","name":"santa-monica","created_at":"2015-09-26 02:38:21","updated_at":"2015-09-26 02:38:21"},{"id":"109","name":"growing-up-summer","created_at":"2015-09-26 04:47:17","updated_at":"2015-09-26 04:47:17"},{"id":"110","name":"theater-dayz","created_at":"2015-09-26 04:50:56","updated_at":"2015-09-26 04:50:56"},{"id":"111","name":"lyrical-story","created_at":"2015-10-20 03:48:54","updated_at":"2015-10-20 03:48:54"},{"id":"112","name":"life-changing","created_at":"2015-11-03 11:22:22","updated_at":"2015-11-03 11:22:22"},{"id":"113","name":"dark-story","created_at":"2015-11-05 05:45:05","updated_at":"2015-11-05 05:45:05"},{"id":"114","name":"itunes","created_at":"2015-11-06 06:36:14","updated_at":"2015-11-06 06:36:14"},{"id":"115","name":"orlando","created_at":"2015-11-15 02:15:01","updated_at":"2015-11-15 02:15:01"},{"id":"116","name":"aitp","created_at":"2015-11-15 02:15:01","updated_at":"2015-11-15 02:15:01"},{"id":"117","name":"post-materialism","created_at":"2015-11-15 02:27:26","updated_at":"2015-11-15 02:27:26"},{"id":"118","name":"2050","created_at":"2015-11-15 02:27:26","updated_at":"2015-11-15 02:27:26"},{"id":"119","name":"slow","created_at":"2015-11-15 02:42:09","updated_at":"2015-11-15 02:42:09"},{"id":"120","name":"synth-pop","created_at":"2015-11-15 02:42:09","updated_at":"2015-11-15 02:42:09"},{"id":"121","name":"dat-beat","created_at":"2015-11-15 04:34:54","updated_at":"2015-11-15 04:34:54"},{"id":"122","name":"life-songs","created_at":"2015-11-16 04:18:32","updated_at":"2015-11-16 04:18:32"},{"id":"123","name":"chuck","created_at":"2015-11-16 04:31:53","updated_at":"2015-11-16 04:31:53"},{"id":"124","name":"california-songs","created_at":"2015-11-16 22:45:12","updated_at":"2015-11-16 22:45:12"},{"id":"125","name":"hiking","created_at":"2015-12-02 00:37:06","updated_at":"2015-12-02 00:37:06"},{"id":"126","name":"soundscape","created_at":"2015-12-09 04:25:28","updated_at":"2015-12-09 04:25:28"},{"id":"127","name":"peaceful","created_at":"2015-12-09 04:25:28","updated_at":"2015-12-09 04:25:28"},{"id":"128","name":"serene","created_at":"2015-12-09 04:25:28","updated_at":"2015-12-09 04:25:28"},{"id":"129","name":"momenets","created_at":"2015-12-09 04:35:32","updated_at":"2015-12-09 04:35:32"}]
+			}
+		});
+
+	</script>
+	
+</html>
